@@ -13,6 +13,23 @@ claim about what they see to carry a citation.
 The output is a single self-contained HTML file. The ten worst findings sit at the top,
 because that is all most readers will get through.
 
+## Quick start
+
+```bash
+python3 scripts/new_audit.py "<product name>" -o findings.json   # 30 scenarios, pre-planned
+# … fill in every TODO by running the product (phases 1–6 below) …
+python3 scripts/build_report.py findings.json -o audit/report.html
+```
+
+The generator hands you a grid that is already balanced across personas, areas and
+viewports, so the job is to investigate and fill in — never to invent 30 scenarios from a
+blank page. Inventing them badly is how audits end up testing the same happy path five
+times.
+
+**It does not have to be a website.** Pass `--kind cli`, `api`, `mobile` or `desktop` and the
+click path becomes a command, a call sequence, or a tap path. The seven fields, the
+evidence rule and the report are identical — only the vocabulary changes.
+
 ## The four rules
 
 These are not style preferences. They are why the report can be trusted.
@@ -45,15 +62,29 @@ carries, and it is the difference between an audit and an opinion.
 
 ### Phase 2 — Build the grid
 
-Thirty scenarios must not be five ideas repeated. Cross three axes until the grid is full:
+Thirty scenarios must not be five ideas repeated. Generate the grid instead of writing it:
 
-- **Persona** — see `references/personas.md` for the bank of 14 and how to pick
-- **Area** — landing, signup, onboarding, core loop, settings, billing, legal, failure states
-- **Viewport** — desktop, mobile, tablet; at least a third mobile
+```bash
+python3 scripts/new_audit.py "Acme Notes" -o findings.json          # web, 30 scenarios
+python3 scripts/new_audit.py "Acme CLI" --kind cli -n 15            # a command-line tool
+python3 scripts/new_audit.py "Acme API" --kind api --areas auth,core,billing
+```
 
-Every scenario needs a goal reachable in **one sitting**. "User explores the app" is not a
-scenario. "A first-time visitor wants to understand within 30 seconds what this does and
-whether they can start" is one.
+It crosses three axes and hands back a scenario per row:
+
+- **Persona** — the bank of 14 in `references/personas.md`, each chosen for the defect class
+  it exposes. Four are mandatory and the generator will not drop them
+- **Area** — landing, signup, onboarding, core loop, settings, billing, legal, failure states,
+  weighted so the core loop gets the largest share without taking everything
+- **Viewport** — desktop 50 / mobile 35 / tablet 15, or a single value for CLI and API
+
+Then read the product and give each row a real goal, reachable in **one sitting**. "User
+explores the app" is not a scenario. "A first-time visitor wants to understand within 30
+seconds what this does and whether they can start" is one. Replace every `TODO:` — a
+remaining TODO means the scenario was skipped, and the report builder will say so.
+
+Adjust the grid where the product demands it. A tool with no billing does not need billing
+scenarios; drop the area rather than inventing three hollow ones.
 
 ### Phase 3 — Verify for real, in parallel
 
@@ -156,6 +187,7 @@ Run these against your own output. Each one has caught a bad audit.
 
 | Path | Purpose |
 |---|---|
+| `scripts/new_audit.py` | Generates the balanced scenario grid to fill in |
 | `references/personas.md` | 14 personas, the area grid, and worked scenario examples |
 | `references/report-template.html` | The report shell — filters, badges, theming |
 | `scripts/build_report.py` | Renders findings JSON into the template; computes the delta |

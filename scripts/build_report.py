@@ -39,6 +39,10 @@ def validate(data):
             errors.append(f"{where}: priority {s.get('priority')!r} is not one of {sorted(PRIORITIES)}")
         if not s.get("evidence"):
             errors.append(f"{where}: no evidence — cite a file:line, route or log, or demote to UX-HYPOTHESIS")
+        todo = [f for f in REQUIRED
+                if "TODO:" in " ".join(s[f] if isinstance(s.get(f), list) else [str(s.get(f, ""))])]
+        if todo:
+            errors.append(f"{where}: still a scaffold — unfilled {', '.join(todo)}")
         if s.get("id") in seen_ids:
             errors.append(f"{where}: duplicate id {s['id']!r} — ids must be unique so re-runs can match")
         seen_ids.add(s.get("id"))
