@@ -1,0 +1,127 @@
+{
+  "product": "Acme Notes",
+  "date": "2026-02-11",
+  "method": "Audited against the local checkout only. The app was driven in a headless browser at http://localhost:3000; payment, mail and cron were read from source and never called.",
+  "stats": { "routes": 41, "models": 12 },
+  "frame": [
+    { "label": "Starts locally", "value": "npm run dev serves on :3000, / returns 200 in 840 ms" },
+    { "label": "Type check", "value": "tsc --noEmit clean" },
+    { "label": "Tests without DB", "value": "52 passed, 7 skipped (DB), 0 failed" },
+    { "label": "Surface", "value": "41 routes, 12 Prisma models, 9 API endpoints" },
+    { "label": "Out of reach", "value": "Stripe checkout, transactional mail, nightly cron, OAuth to third parties", "ok": false }
+  ],
+  "blockers": [
+    {
+      "title": "No password reset path exists",
+      "detail": "Login offers password, Google and register — nothing else. A user who forgets their password has no route back into the account and must contact support.",
+      "scenarios": ["auth-forgot-password"]
+    },
+    {
+      "title": "Empty state shows a spinner forever",
+      "detail": "A new account with zero notes renders the loading skeleton indefinitely because the query resolves to an empty array and the guard checks for undefined. Every single new user hits this on their first screen.",
+      "scenarios": ["onboarding-empty-state"]
+    },
+    {
+      "title": "Mobile toolbar covers the primary action",
+      "detail": "The fixed formatting bar and the save button both sit at bottom-0 with the same z-index. On viewports under 400 px the save button is unreachable."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "landing-first-visit",
+      "title": "First-time visitor decides in 30 seconds whether to sign up",
+      "status": "VERIFIED",
+      "priority": "P2",
+      "area": "Landing",
+      "viewport": "Desktop",
+      "persona": "First-time visitor, no context",
+      "persona_goal": "A visitor who arrived from a link wants to understand what this does and whether it is free to try.",
+      "path": "/ → scroll → pricing",
+      "expected": "A one-line positioning statement above the fold, a visible price, and one obvious call to action.",
+      "actual": "GET / returns 200. The hero says \"Think better.\" with no object; pricing sits below three testimonial blocks, 2,100 px down.",
+      "problems": "The headline does not say what the product is, and the price is four screens away — the two things this visitor came for.",
+      "fix": "Put the product category into the headline and lift the pricing block above the testimonials.",
+      "evidence": ["components/Hero.tsx:18-24", "components/Landing.tsx:60-98", "screenshot: audit/shots/landing-desktop.png"]
+    },
+    {
+      "id": "auth-forgot-password",
+      "title": "Returning user cannot recover a forgotten password",
+      "status": "BROKEN",
+      "priority": "P0",
+      "area": "Signup and login",
+      "viewport": "Desktop",
+      "persona": "User who forgot their password",
+      "persona_goal": "A user returning after weeks wants to get back into their account without the password.",
+      "path": "/login → looking for \"forgot password\"",
+      "expected": "A reset link on the login form leading to an email-based recovery flow.",
+      "actual": "The login form renders email, password, a Google button and a register link. No reset link, and no route under /auth handles reset tokens.",
+      "problems": "Locked-out users have no self-service route back in; the only path is support, which is not linked from the login page either.",
+      "fix": "Add a reset request route with a signed one-hour token and link it from the login form.",
+      "evidence": ["app/login/page.tsx:44-91", "app/api/auth/[...nextauth]/route.ts:1-40", "no match for 'reset' under app/api/auth"]
+    },
+    {
+      "id": "onboarding-empty-state",
+      "title": "Brand-new account waits on a spinner that never resolves",
+      "status": "BROKEN",
+      "priority": "P0",
+      "area": "Onboarding",
+      "viewport": "Desktop",
+      "persona": "User with an empty account",
+      "persona_goal": "A user who just registered wants to create their first note.",
+      "path": "/register → /app",
+      "expected": "An empty state explaining what to do first, with a \"new note\" button.",
+      "actual": "The skeleton renders indefinitely. The guard reads `if (!notes) return <Skeleton/>` while the query resolves to `[]`, which is falsy in the surrounding ternary.",
+      "problems": "Every new user's first screen is a permanent loading state — the worst possible first impression, and it looks like an outage.",
+      "fix": "Check `notes === undefined` for loading and render a dedicated empty state for the zero-length case.",
+      "evidence": ["app/app/NoteList.tsx:31-38", "hooks/useNotes.ts:12-19"]
+    },
+    {
+      "id": "editor-mobile-save",
+      "title": "Mobile user cannot reach the save button while formatting",
+      "status": "PARTIAL",
+      "priority": "P1",
+      "area": "Core loop",
+      "viewport": "Mobile",
+      "persona": "User on a slow phone",
+      "persona_goal": "A user on a phone wants to write a note, make a heading bold, and save it.",
+      "path": "/app → new note → type → format → save",
+      "expected": "Formatting bar and save button coexist; save stays reachable.",
+      "actual": "At 390 px the formatting bar (bottom-0, z-30) overlaps the save button (bottom-0, z-30). Tapping the overlap hits whichever paints last.",
+      "problems": "The note cannot be saved from a phone once the formatting bar is open, which is the common case while writing.",
+      "fix": "Move save into the top app bar on viewports under 640 px and leave the bottom edge to the formatting bar.",
+      "evidence": ["components/Editor.tsx:120-134", "components/FormatBar.tsx:8-12", "screenshot: audit/shots/editor-390.png"]
+    },
+    {
+      "id": "legal-subprocessors",
+      "title": "Sceptic checks where note content is sent before signing up",
+      "status": "UX-HYPOTHESIS",
+      "priority": "P0",
+      "area": "Legal and privacy",
+      "viewport": "Desktop",
+      "persona": "Sceptic checking price and privacy",
+      "persona_goal": "A privacy-conscious visitor wants to confirm note content is not sent to a model provider before creating an account.",
+      "path": "/ → privacy → subprocessors",
+      "expected": "A subprocessor list matching what the code actually calls.",
+      "actual": "The privacy page lists hosting and analytics only. The summarise feature posts note bodies to a model API, and billing goes through a payment processor; neither appears.",
+      "problems": "The published list contradicts the code, which is a disclosure defect rather than a UX one.",
+      "fix": "Add both processors to the list, or gate summarisation behind explicit consent.",
+      "evidence": ["app/privacy/page.tsx:70-88", "lib/summarise.ts:14-29", "lib/billing.ts:5-11"]
+    },
+    {
+      "id": "export-account-data",
+      "title": "Departing user tries to take their notes with them",
+      "status": "NOT TESTABLE",
+      "priority": "P1",
+      "area": "Settings and account",
+      "viewport": "Desktop",
+      "persona": "User who wants to leave",
+      "persona_goal": "A user closing their account wants an export of everything they wrote.",
+      "path": "/settings → account → export",
+      "expected": "An export producing a downloadable archive, and an account deletion path.",
+      "actual": "An export button exists and calls POST /api/export, which enqueues a background job and sends mail. Not executed — it writes a job row and dispatches an email.",
+      "problems": "Cannot be confirmed read-only; the delete path next to it has no confirmation step in the source, which is worth a closer look.",
+      "fix": "Add a dry-run mode to the export endpoint so the flow can be verified without side effects.",
+      "evidence": ["app/settings/account/page.tsx:52-64", "app/api/export/route.ts:9-31"]
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f7f8; --line:#e3e3e6; --line-2:#cfcfd4;
+  --ink:#17171a; --ink-2:#55555e; --ink-3:#84848e; --accent:#2f6feb;
+  --broken:#c0392b; --broken-bg:#fdecea; --partial:#a86a00; --partial-bg:#fdf3e0;
+  --mock:#1f6f8b; --mock-bg:#e6f3f8; --verified:#1e7a45; --verified-bg:#e6f5ec;
+  --nt:#5a5a63; --nt-bg:#eeeef0; --hyp:#6b4bab; --hyp-bg:#f0eaf9;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e0f11; --surface:#16171a; --line:#26272b; --line-2:#3a3b40;
+    --ink:#e9e8e6; --ink-2:#a3a29e; --ink-3:#77766f; --accent:#6f9bf5;
+    --broken:#f0857b; --broken-bg:#2c1614; --partial:#e0b25a; --partial-bg:#2a2113;
+    --mock:#7cc2dd; --mock-bg:#132630; --verified:#74d69e; --verified-bg:#12281c;
+    --nt:#9a9aa2; --nt-bg:#1e1f22; --hyp:#bda3f0; --hyp-bg:#221a33;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:44px 20px 90px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.021em;line-height:1.2}
+h2{font-size:17px;margin:38px 0 12px;letter-spacing:-.01em}
+.sub{color:var(--ink-3);font-size:13.5px;margin:0 0 22px}
+.method{color:var(--ink-2);font-size:14px;max-width:70ch;margin:0 0 26px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:11px 15px;min-width:106px}
+.stat b{display:block;font-size:22px;letter-spacing:-.02em}
+.stat span{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.frame{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:8px}
+.frow{display:flex;gap:14px;padding:9px 15px;font-size:13.5px;border-top:1px solid var(--line)}
+.frow:first-child{border-top:0}
+.frow b{flex:none;width:190px;font-weight:600;color:var(--ink-2)}
+.frow.warn{background:var(--broken-bg)}
+.frow.warn b{color:var(--broken)}
+ol.blockers{margin:0;padding-left:0;list-style:none;counter-reset:b}
+ol.blockers li{counter-increment:b;position:relative;padding:11px 0 11px 44px;
+  border-top:1px solid var(--line)}
+ol.blockers li:first-child{border-top:0}
+ol.blockers li::before{content:counter(b);position:absolute;left:0;top:11px;
+  width:26px;height:26px;border-radius:50%;background:var(--surface);
+  border:1px solid var(--line-2);display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:var(--ink-2)}
+ol.blockers strong{display:block;margin-bottom:2px}
+ol.blockers p{margin:0;color:var(--ink-2);font-size:13.5px}
+.filters{position:sticky;top:0;z-index:5;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:13px 0 10px;margin-bottom:16px}
+.fr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.fr .lab{width:78px;flex:none;font-size:10.5px;color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:.07em}
+.chip{font:inherit;font-size:12.5px;background:var(--surface);color:var(--ink-2);
+  border:1px solid var(--line);border-radius:99px;padding:3px 11px;cursor:pointer;
+  transition:.12s}
+.chip:hover{border-color:var(--line-2);color:var(--ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.reset{margin-left:auto;background:0;border:0;font:inherit;font-size:12px;
+  color:var(--ink-3);cursor:pointer;text-decoration:underline}
+.count{font-size:12.5px;color:var(--ink-3);margin-bottom:14px}
+.cards{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.card{border:1px solid var(--line);border-radius:11px;padding:14px 16px;
+  background:var(--surface)}
+.card.hide{display:none}
+.chead{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:9px}
+.num{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-3)}
+.ctitle{font-weight:640;letter-spacing:-.008em;flex:1;min-width:220px}
+.b{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;
+  border:1px solid transparent;white-space:nowrap}
+.b.VERIFIED{color:var(--verified);background:var(--verified-bg)}
+.b.PARTIAL{color:var(--partial);background:var(--partial-bg)}
+.b.MOCK{color:var(--mock);background:var(--mock-bg)}
+.b.BROKEN{color:var(--broken);background:var(--broken-bg)}
+.b.NOTTESTABLE{color:var(--nt);background:var(--nt-bg)}
+.b.UXHYPOTHESIS{color:var(--hyp);background:var(--hyp-bg)}
+.b.p{color:var(--ink-2);background:transparent;border-color:var(--line-2)}
+.b.P0{color:var(--broken);border-color:var(--broken)}
+.b.meta{color:var(--ink-3);background:transparent;border-color:var(--line);font-weight:400}
+.b.d{border-style:dashed}
+.b.fixed{color:var(--verified);border-color:var(--verified)}
+.b.new{color:var(--accent);border-color:var(--accent)}
+.b.regressed{color:var(--broken);border-color:var(--broken)}
+dl{margin:0;display:grid;grid-template-columns:118px 1fr;gap:5px 16px;font-size:13.5px}
+dt{color:var(--ink-3);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+  padding-top:2px}
+dd{margin:0;color:var(--ink-2)}
+dd.strong{color:var(--ink)}
+code,.ev{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+.ev{color:var(--ink-3);word-break:break-word}
+.ev span{display:inline-block;margin-right:9px}
+.empty{text-align:center;color:var(--ink-3);padding:36px 0;display:none}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--ink-3)}
+@media (max-width:640px){
+  dl{grid-template-columns:1fr;gap:1px 0}
+  dt{margin-top:7px}
+  .fr .lab{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="h1"></h1>
+  <p class="sub" id="sub"></p>
+  <p class="method" id="method"></p>
+  <div class="stats" id="stats"></div>
+
+  <h2>Audit frame</h2>
+  <div class="frame" id="frame"></div>
+
+  <h2>The ten costliest blockers</h2>
+  <ol class="blockers" id="blockers"></ol>
+
+  <h2>Scenarios</h2>
+  <div class="filters" id="filters"></div>
+  <div class="count"><b id="n">0</b> of <span id="tot">0</span> visible</div>
+  <ul class="cards" id="cards"></ul>
+  <div class="empty" id="empty">Nothing matches. Loosen a filter.</div>
+
+  <footer>Read-only audit. No production data was written, no third-party system was called.</footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cls = s => s.replace(/[^A-Za-z]/g, '');
+
+document.title = D.product + ' — user scenario audit';
+document.getElementById('h1').textContent = D.product + ' — ' + D.scenarios.length + ' first-user scenarios';
+document.getElementById('sub').textContent = 'Audited ' + D.date;
+document.getElementById('method').textContent = D.method || '';
+
+const counts = k => D.scenarios.reduce((m, s) => (m[s[k]] = (m[s[k]] || 0) + 1, m), {});
+const st = counts('status'), pr = counts('priority');
+const auto = {
+  'scenarios': D.scenarios.length,
+  'broken': st.BROKEN || 0,
+  'P0': pr.P0 || 0,
+  'verified': st.VERIFIED || 0,
+  'hypotheses': st['UX-HYPOTHESIS'] || 0
+};
+document.getElementById('stats').innerHTML =
+  Object.entries({...auto, ...(D.stats || {})})
+    .map(([k, v]) => `<div class="stat"><b>${esc(v)}</b><span>${esc(k)}</span></div>`).join('');
+
+document.getElementById('frame').innerHTML = (D.frame || [])
+  .map(f => `<div class="frow${f.ok === false ? ' warn' : ''}"><b>${esc(f.label)}</b><span>${esc(f.value)}</span></div>`).join('');
+
+document.getElementById('blockers').innerHTML = (D.blockers || [])
+  .map(b => `<li><strong>${esc(b.title)}</strong><p>${esc(b.detail)}</p></li>`).join('');
+
+const AXES = [
+  ['status', 'Status', [...new Set(D.scenarios.map(s => s.status))]],
+  ['priority', 'Priority', ['P0', 'P1', 'P2', 'P3'].filter(p => D.scenarios.some(s => s.priority === p))],
+  ['area', 'Area', [...new Set(D.scenarios.map(s => s.area))].sort()],
+  ['viewport', 'Viewport', [...new Set(D.scenarios.map(s => s.viewport))]]
+];
+if (D.scenarios.some(s => s.delta)) {
+  AXES.push(['delta', 'Change', [...new Set(D.scenarios.map(s => s.delta).filter(Boolean))]]);
+}
+document.getElementById('filters').innerHTML = AXES
+  .map(([k, lab, vals]) => `<div class="fr"><span class="lab">${lab}</span>` +
+    vals.map(v => `<button class="chip" data-k="${k}" data-v="${esc(v)}">${esc(v)}</button>`).join('') + '</div>')
+  .join('') + '<div class="fr"><span class="lab"></span><button class="reset" id="rs">reset filters</button></div>';
+
+document.getElementById('cards').innerHTML = D.scenarios.map((s, i) => `
+  <li class="card" data-status="${esc(s.status)}" data-priority="${esc(s.priority)}"
+      data-area="${esc(s.area)}" data-viewport="${esc(s.viewport)}" data-delta="${esc(s.delta || '')}">
+    <div class="chead">
+      <span class="num">${String(i + 1).padStart(2, '0')}</span>
+      <span class="ctitle">${esc(s.title)}</span>
+      <span class="b ${cls(s.status)}">${esc(s.status)}</span>
+      <span class="b p ${esc(s.priority)}">${esc(s.priority)}</span>
+      <span class="b meta">${esc(s.area)}</span>
+      <span class="b meta">${esc(s.viewport)}</span>
+      ${s.delta ? `<span class="b d ${cls(s.delta)}">${esc(s.delta)}</span>` : ''}
+    </div>
+    <dl>
+      <dt>Persona</dt><dd class="strong">${esc(s.persona_goal)}</dd>
+      <dt>Click path</dt><dd><code>${esc(s.path)}</code></dd>
+      <dt>Expected</dt><dd>${esc(s.expected)}</dd>
+      <dt>Actual</dt><dd class="strong">${esc(s.actual)}</dd>
+      <dt>Problems</dt><dd>${esc(s.problems)}</dd>
+      <dt>Fix</dt><dd class="strong">${esc(s.fix)}</dd>
+      <dt>Evidence</dt><dd class="ev">${(s.evidence || []).map(e => `<span>${esc(e)}</span>`).join('')}</dd>
+    </dl>
+  </li>`).join('');
+
+const sel = {}, cards = [...document.querySelectorAll('.card')];
+document.getElementById('tot').textContent = cards.length;
+function apply() {
+  let n = 0;
+  for (const c of cards) {
+    let ok = true;
+    for (const k in sel) {
+      if (sel[k].size && !sel[k].has(c.dataset[k])) { ok = false; break; }
+    }
+    c.classList.toggle('hide', !ok);
+    if (ok) n++;
+  }
+  document.getElementById('n').textContent = n;
+  document.getElementById('empty').style.display = n ? 'none' : 'block';
+}
+document.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+  const { k, v } = b.dataset;
+  (sel[k] = sel[k] || new Set()).has(v) ? sel[k].delete(v) : sel[k].add(v);
+  b.classList.toggle('on');
+  apply();
+});
+document.getElementById('rs').onclick = () => {
+  for (const k in sel) sel[k].clear();
+  document.querySelectorAll('.chip.on').forEach(b => b.classList.remove('on'));
+  apply();
+};
+apply();
+</script>
+</body>
+</html>

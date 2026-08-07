@@ -1,0 +1,162 @@
+---
+name: user-scenario-audit
+description: Audit a product through the eyes of 30 first-time users. Each scenario names a persona, walks a real click path, states what they expected, what actually happened, and cites the file and line that proves it. Produces a filterable HTML report with status, priority and the ten costliest blockers. Use when asked for a UX audit, first-run review, launch-blocker hunt, usability pass, "test it like a new user", "30 testers", or (German) "Erstnutzer-Audit", "Nutzer-Szenarien", "30 Tester".
+---
+
+# User Scenario Audit
+
+Most usability reviews fail the same way: someone who already knows the product walks
+through it and finds nothing, because they cannot un-know the shortcuts. This skill
+replaces that with 30 strangers who each want one specific thing, and it forces every
+claim about what they see to carry a citation.
+
+The output is a single self-contained HTML file. The ten worst findings sit at the top,
+because that is all most readers will get through.
+
+## The four rules
+
+These are not style preferences. They are why the report can be trusted.
+
+1. **No claim without evidence.** Every statement about behaviour cites `file.tsx:120-134`,
+   a route, a log line, a screenshot, or a test result. What you cannot cite is labelled
+   `UX-HYPOTHESIS` — never dressed up as a finding.
+2. **Read-only.** No production data, no writes, no real signups, no third-party calls, no
+   installs, no commits, no deploys. If a scenario cannot be tested without side effects,
+   its status is `NOT TESTABLE` and you say why.
+3. **A broken app is a finding, not a blocker.** If it will not run locally, that is
+   finding number one. The audit continues at code level.
+4. **One fix per scenario, one or two sentences.** "Should be refactored" is not a fix and
+   gets cut.
+
+## Process
+
+### Phase 1 — Establish the frame
+
+Before scenario one, find out what you can actually observe. Record:
+
+- Does it run? Start command, port, first response from `/`
+- Type check and lint: clean or not
+- Test run without a database: passed, skipped, failed
+- How many routes, endpoints, data models
+- What is **out of reach** — payment, mail, cron, third-party APIs — listed explicitly
+
+This block goes into the report verbatim. It tells the reader how much weight each finding
+carries, and it is the difference between an audit and an opinion.
+
+### Phase 2 — Build the grid
+
+Thirty scenarios must not be five ideas repeated. Cross three axes until the grid is full:
+
+- **Persona** — see `references/personas.md` for the bank of 14 and how to pick
+- **Area** — landing, signup, onboarding, core loop, settings, billing, legal, failure states
+- **Viewport** — desktop, mobile, tablet; at least a third mobile
+
+Every scenario needs a goal reachable in **one sitting**. "User explores the app" is not a
+scenario. "A first-time visitor wants to understand within 30 seconds what this does and
+whether they can start" is one.
+
+### Phase 3 — Verify for real, in parallel
+
+Two failure modes to avoid: reading code and calling it observation, and walking 30
+scenarios end to end in one thread.
+
+**Verify by running it.** Drive the actual UI with whatever browser automation is available
+(Playwright, Puppeteer, a headless browser skill, the browser tools in your harness). Load
+the page, click the path, read the console, capture a screenshot. Reading the component and
+inferring what renders is a hypothesis, and must be labelled as one. A run where more than a
+third of scenarios end as `UX-HYPOTHESIS` did not audit the product, it reviewed the source.
+
+**Split the work.** Assign each area to its own worker (subagent, task, session) with the
+frame from phase 1 as shared context, and have it return findings as JSON matching
+`scripts/findings.schema.json`. Merge at the end. Areas are independent; there is no reason
+to serialise them. Give every worker the same rule set — inconsistent status labels across
+areas make the report unfilterable.
+
+### Phase 4 — Fill the seven fields
+
+Every scenario, every field, same order. A blank field means the scenario is not done.
+
+| Field | Content |
+|---|---|
+| **Persona and goal** | Who, wanting what, in one sentence |
+| **Entry and click path** | The actual route: `/` → pricing → login |
+| **Expected** | What this person reasonably expects at this point |
+| **Actual** | What the runtime delivered — status code, error text, observed behaviour |
+| **Problems** | The gap between the two. No gap? Write "none" |
+| **Fix** | One intervention that closes it. One or two sentences |
+| **Evidence** | `file.tsx:50-60`, routes, log lines, screenshots — at least one |
+
+### Phase 5 — Classify
+
+**Status**, exactly one per scenario:
+
+| Status | Meaning |
+|---|---|
+| `VERIFIED` | Executed and observed first-hand |
+| `PARTIAL` | Part observed, remainder inferred from code |
+| `MOCK` | Works, but on placeholder data |
+| `BROKEN` | Reproducibly fails |
+| `NOT TESTABLE` | External system, deliberately untouched |
+| `UX-HYPOTHESIS` | Code reading only, no runtime evidence |
+
+**Priority**:
+
+| | |
+|---|---|
+| `P0` | Blocks use or launch, or is a legal/privacy defect |
+| `P1` | User cannot reach the goal, but a workaround exists |
+| `P2` | Friction, confusion, inconsistency |
+| `P3` | Polish |
+
+### Phase 6 — The ten costliest blockers
+
+Across all scenarios, the ten items that cost the most — ranked by priority, then by how
+many scenarios they hit at once. A heading and two sentences each. A problem appearing in
+nine scenarios outranks a worse-sounding one that appears in a single edge case.
+
+### Phase 7 — Build the report
+
+Write findings as JSON conforming to `scripts/findings.schema.json`, then:
+
+```bash
+python3 scripts/build_report.py findings.json -o audit/report.html
+```
+
+The template ships with the skill (`references/report-template.html`): self-contained, no
+CDN, light and dark, and a filter bar over status, priority, area and viewport with a live
+"12 of 30 visible" counter. Do not hand-roll the HTML — a 30-card page without working
+filters is unreadable, and rebuilding it each run guarantees it will differ each run.
+
+Save the report inside the audited repository (`audit/`), never outside it.
+
+### Phase 8 — Re-runs: report the delta
+
+When a previous `findings.json` exists, pass it:
+
+```bash
+python3 scripts/build_report.py findings.json --previous audit/2026-01-14-findings.json -o audit/report.html
+```
+
+Scenarios are matched by `id`, and each is marked **fixed**, **new**, **still open** or
+**regressed**. A second audit that starts from zero wastes the first one: what everybody
+wants to know is what moved.
+
+## Self-check before you publish the report
+
+Run these against your own output. Each one has caught a bad audit.
+
+- More than a third `UX-HYPOTHESIS` → you reviewed source, not product. Go back to phase 3.
+- Two scenarios with the same click path → the grid was too narrow. Replace one.
+- A finding with no citation → cut it, or demote it to hypothesis.
+- Everything is `P0` → then nothing is. Cap `P0` at a third.
+- A fix you could not implement yourself tomorrow → too vague, rewrite it.
+- No mobile scenario failed → suspicious. Mobile is where layout breaks; look again.
+
+## Files
+
+| Path | Purpose |
+|---|---|
+| `references/personas.md` | 14 personas, the area grid, and worked scenario examples |
+| `references/report-template.html` | The report shell — filters, badges, theming |
+| `scripts/build_report.py` | Renders findings JSON into the template; computes the delta |
+| `scripts/findings.schema.json` | The contract every worker returns |

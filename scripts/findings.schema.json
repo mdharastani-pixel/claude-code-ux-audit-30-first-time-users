@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "User scenario audit findings",
+  "type": "object",
+  "required": ["product", "date", "frame", "blockers", "scenarios"],
+  "additionalProperties": false,
+  "properties": {
+    "product": { "type": "string", "description": "Name of the audited product" },
+    "date": { "type": "string", "description": "ISO date of the audit, YYYY-MM-DD" },
+    "method": {
+      "type": "string",
+      "description": "One or two sentences on how it was audited and what was deliberately not touched"
+    },
+    "stats": {
+      "type": "object",
+      "description": "Headline numbers shown at the top of the report",
+      "additionalProperties": { "type": ["string", "number"] }
+    },
+    "frame": {
+      "type": "array",
+      "description": "Phase 1 observations: does it run, type check, tests, route count, what is out of reach",
+      "items": {
+        "type": "object",
+        "required": ["label", "value"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string" },
+          "value": { "type": "string" },
+          "ok": { "type": "boolean", "description": "false renders the row as a warning" }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "The ten costliest findings, most expensive first",
+      "items": {
+        "type": "object",
+        "required": ["title", "detail"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string" },
+          "detail": { "type": "string", "description": "Two sentences: what breaks, and what it costs" },
+          "scenarios": {
+            "type": "array",
+            "description": "ids of the scenarios this blocker appears in",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "priority", "area", "viewport",
+                     "persona_goal", "path", "expected", "actual", "problems", "fix", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable slug, reused across runs so the delta can match. e.g. landing-mobile-pricing"
+          },
+          "title": { "type": "string" },
+          "status": {
+            "enum": ["VERIFIED", "PARTIAL", "MOCK", "BROKEN", "NOT TESTABLE", "UX-HYPOTHESIS"]
+          },
+          "priority": { "enum": ["P0", "P1", "P2", "P3"] },
+          "area": { "type": "string" },
+          "viewport": { "enum": ["Desktop", "Mobile", "Tablet"] },
+          "persona": { "type": "string", "description": "Persona label from references/personas.md" },
+          "persona_goal": { "type": "string", "description": "Who wants what, one sentence" },
+          "path": { "type": "string", "description": "The actual click path" },
+          "expected": { "type": "string" },
+          "actual": { "type": "string", "description": "Observed behaviour, status codes, error text" },
+          "problems": { "type": "string", "description": "The gap, as user consequence. 'none' if there is none" },
+          "fix": { "type": "string", "description": "One intervention, one or two sentences" },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "description": "file.tsx:50-60, routes, log lines, screenshot paths",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
