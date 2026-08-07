@@ -128,10 +128,34 @@ def plan(n, kind, areas):
     return rows
 
 
-def build(product, n, kind, areas):
+def blocked_stub(area, view, kind):
+    """One placeholder per unreachable area — named, not silently dropped."""
+    return {
+        "id": f"{area}-unreachable",
+        "title": f"TODO: what a user is trying to do in {AREAS[area][0].lower()}",
+        "status": "NOT TESTABLE",
+        "priority": "P1",
+        "area": AREAS[area][0],
+        "viewport": view,
+        "persona": "Blocked area",
+        "persona_goal": f"TODO: the goal a user has in {AREAS[area][0].lower()} — state it even though you cannot run it",
+        "path": PATH_HINT[kind],
+        "expected": "TODO: what a user reasonably expects here",
+        "actual": "TODO: not executed — say exactly why (no session, writes to production, external system)",
+        "problems": "TODO: unjudged. Name what stays unknown because of it",
+        "fix": "TODO: what would make this area auditable — a seeded database, a throwaway account, a dry-run mode",
+        "evidence": ["TODO: cite what proves the block — a connection string, an auth write, a 307"],
+    }
+
+
+def build(product, n, kind, areas, blocked=()):
     rows = plan(n, kind, areas)
-    views = viewports_for(kind, len(rows))
+    views = viewports_for(kind, len(rows) + len(blocked))
     seen, scenarios = set(), []
+
+    for area in blocked:
+        scenarios.append(blocked_stub(area, views.pop(), kind))
+        seen.add(f"{area}-unreachable")
 
     for (area, slug, persona), view in zip(rows, views):
         base = f"{area}-{slug}"
@@ -182,20 +206,34 @@ def main():
     ap.add_argument("-k", "--kind", choices=sorted(KINDS), default="web",
                     help="what kind of product this is (default: web)")
     ap.add_argument("-a", "--areas", help="comma-separated subset of: " + ", ".join(AREAS))
+    ap.add_argument("-b", "--blocked",
+                    help="areas you established in phase 1 that you cannot reach (e.g. no test "
+                         "account). Each gets one NOT TESTABLE stub instead of a full share")
     ap.add_argument("-o", "--out", type=Path, default=Path("findings.json"))
     args = ap.parse_args()
 
     areas = [a.strip() for a in args.areas.split(",")] if args.areas else list(AREAS)
-    unknown = [a for a in areas if a not in AREAS]
+    blocked = [a.strip() for a in args.blocked.split(",")] if args.blocked else []
+    unknown = [a for a in areas + blocked if a not in AREAS]
     if unknown:
         print(f"unknown area(s): {', '.join(unknown)}\nknown: {', '.join(AREAS)}", file=sys.stderr)
         return 1
-    if args.scenarios < len(areas):
-        print(f"-n {args.scenarios} is below the {len(areas)} areas requested; "
-              f"raise it or narrow --areas", file=sys.stderr)
+
+    areas = [a for a in areas if a not in blocked]
+    if not areas:
+        print("every area is blocked — arrange access before auditing, there is nothing to run",
+              file=sys.stderr)
+        return 1
+    if args.scenarios - len(blocked) < len(areas):
+        print(f"-n {args.scenarios} leaves fewer than {len(areas)} reachable scenarios after "
+              f"{len(blocked)} blocked area(s); raise it or narrow --areas", file=sys.stderr)
         return 1
 
-    data = build(args.product, args.scenarios, args.kind, areas)
+    data = build(args.product, args.scenarios - len(blocked), args.kind, areas, blocked)
+    if blocked:
+        print(f"  note: {len(blocked)} area(s) marked unreachable: {', '.join(blocked)}. "
+              f"Each gets one NOT TESTABLE stub — say in it what would make the area auditable.",
+              file=sys.stderr)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

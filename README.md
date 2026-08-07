@@ -72,6 +72,24 @@ Narrow the scope when the product is smaller than the default grid:
 python3 scripts/new_audit.py "My Tool" -n 15 --areas landing,auth,core,edge
 ```
 
+### When you cannot get in
+
+Most products hide everything behind a login, and an audit is not allowed to write to
+production. Phase 1 makes you check three things before planning anything: which database
+the local instance points at, whether signing in itself writes, and whether a throwaway
+account exists. If it does not, the skill tells you to ask for one rather than quietly
+producing a report about the login page.
+
+If access cannot be arranged, name the unreachable areas so the grid does not fill with
+scenarios you already know you cannot run:
+
+```bash
+python3 scripts/new_audit.py "My Tool" --blocked core,settings,billing
+```
+
+Each blocked area gets one `NOT TESTABLE` stub asking what would make it auditable, and the
+report builder warns when too much of the product went unobserved.
+
 ## What you get
 
 One self-contained HTML file:
@@ -99,6 +117,8 @@ The skill is opinionated on purpose. These are checked in code, and violations a
 | Duplicate scenario ids are an error | Ids are how re-runs match |
 | Read-only: no writes, no signups, no third-party calls, no commits | An audit must be safe to run against anything |
 | More than ⅓ hypotheses → warning | You reviewed the source, not the product |
+| More than ⅓ untestable → warning | You audited the front door and called it the building |
+| More than half never observed → warning | Most of the product is still unaudited, whatever the report implies |
 | Everything `P0` → warning | If everything blocks, nothing does |
 | Fewer than ⅓ mobile scenarios → warning | Mobile is where layout breaks |
 | Two scenarios sharing a click path → warning | The grid was too narrow |

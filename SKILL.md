@@ -57,6 +57,29 @@ Before scenario one, find out what you can actually observe. Record:
 - How many routes, endpoints, data models
 - What is **out of reach** — payment, mail, cron, third-party APIs — listed explicitly
 
+**Then the question that decides the whole audit: can you get in?**
+
+Almost everything worth auditing sits behind a login, and rule 2 forbids writing to
+production. So before generating a grid, establish all three:
+
+1. Which database does the local instance point at? Read the connection string. If it is
+   production, no flow that writes may run.
+2. Does signing in itself write? Check the auth path for `update`, `create` or `upsert` —
+   last-login stamps and failed-attempt counters are common, and they are writes.
+3. Is there a throwaway account against a non-production database?
+
+If the answer to 3 is no and the answer to 2 is yes, **stop and say so** before building the
+grid. Ask for a seeded local database or a disposable account. An audit that cannot open the
+product will only ever describe its front door, and the honest response is to name that
+limit up front rather than to hand back a report that looks complete.
+
+If access cannot be arranged, continue — but pass the unreachable areas to the generator so
+the grid does not fill with scenarios you already know you cannot run:
+
+```bash
+python3 scripts/new_audit.py "Acme" --blocked core,settings,billing
+```
+
 This block goes into the report verbatim. It tells the reader how much weight each finding
 carries, and it is the difference between an audit and an opinion.
 

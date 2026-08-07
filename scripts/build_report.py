@@ -61,6 +61,15 @@ def validate(data):
         warnings.append(
             f"{status['UX-HYPOTHESIS']}/{n} scenarios are UX-HYPOTHESIS — that is a source review, "
             "not a product audit. Run the UI and re-verify.")
+    if status["NOT TESTABLE"] > n / 3:
+        warnings.append(
+            f"{status['NOT TESTABLE']}/{n} scenarios are NOT TESTABLE — you audited the front door. "
+            "Arrange a throwaway account or a seeded non-production database and run them.")
+    unobserved = status["NOT TESTABLE"] + status["UX-HYPOTHESIS"]
+    if unobserved > n / 2:
+        warnings.append(
+            f"{unobserved}/{n} scenarios were never observed running. Whatever the report says, "
+            "most of this product is still unaudited — state that at the top or fix the access.")
     if prio["P0"] > n / 3:
         warnings.append(f"{prio['P0']}/{n} scenarios are P0 — if everything blocks, nothing does. Re-rank.")
     if view["Mobile"] < n / 3:
