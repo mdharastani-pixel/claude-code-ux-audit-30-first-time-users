@@ -1,9 +1,9 @@
 ---
-name: user-scenario-audit
-description: Audit a product through the eyes of 30 first-time users. Each scenario names a persona, walks a real click path, states what they expected, what actually happened, and cites the file and line that proves it. Produces a filterable HTML report with status, priority and the ten costliest blockers. Use when asked for a UX audit, first-run review, launch-blocker hunt, usability pass, "test it like a new user", "30 testers", or (German) "Erstnutzer-Audit", "Nutzer-Szenarien", "30 Tester".
+name: test-like-a-new-user
+description: Test a product as 30 first-time users would. Each scenario names a persona, walks a real click path, states what they expected, what actually happened, and cites the file and line that proves it. Produces a filterable HTML report with status, priority and the ten costliest blockers. Use when asked for a UX audit, first-run review, launch-blocker hunt, usability pass, "test it like a new user", "30 testers", or (German) "Erstnutzer-Audit", "Nutzer-Szenarien", "30 Tester".
 ---
 
-# User Scenario Audit
+# Test Like A New User
 
 Most usability reviews fail the same way: someone who already knows the product walks
 through it and finds nothing, because they cannot un-know the shortcuts. This skill
@@ -57,6 +57,9 @@ Before scenario one, find out what you can actually observe. Record:
 - How many routes, endpoints, data models
 - What is **out of reach** — payment, mail, cron, third-party APIs — listed explicitly
 
+This block goes into the report verbatim. It tells the reader how much weight each finding
+carries, and it is the difference between an audit and an opinion.
+
 **Then the question that decides the whole audit: can you get in?**
 
 Almost everything worth auditing sits behind a login, and rule 2 forbids writing to
@@ -79,9 +82,6 @@ the grid does not fill with scenarios you already know you cannot run:
 ```bash
 python3 scripts/new_audit.py "Acme" --blocked core,settings,billing
 ```
-
-This block goes into the report verbatim. It tells the reader how much weight each finding
-carries, and it is the difference between an audit and an opinion.
 
 ### Phase 2 — Build the grid
 
