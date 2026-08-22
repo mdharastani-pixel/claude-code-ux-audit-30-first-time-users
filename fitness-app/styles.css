@@ -19,6 +19,8 @@
   --radius-sm: 9px;
   --nav-h: 62px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Anzeigeschrift nur für Marke, Überschriften und Kennzahlen; offline greift der Fallback. */
+  --font-display: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 :root:not([data-theme="light"]) {
   color-scheme: light;
@@ -73,7 +75,7 @@ body {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
 }
-h1, h2, h3 { line-height: 1.25; margin: 0; letter-spacing: -.01em; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; margin: 0; letter-spacing: -.015em; }
 h1 { font-size: 1.5rem; }
 h2 { font-size: 1.15rem; }
 h3 { font-size: 1rem; }
@@ -88,7 +90,7 @@ a { color: var(--accent); }
   padding: 10px 16px; background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; letter-spacing: -.02em; }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 800; letter-spacing: -.02em; }
 .brand-mark { font-size: 1.15rem; }
 .brand-name { font-size: 1.05rem; }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
@@ -201,7 +203,7 @@ label.field > span { display: block; font-size: .8rem; font-weight: 600; color: 
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 620px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-.stat-value { font-size: 1.5rem; font-weight: 750; letter-spacing: -.02em; }
+.stat-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .stat-label { font-size: .78rem; color: var(--text-dim); font-weight: 600; margin-top: 2px; }
 
 .list { list-style: none; margin: 0; padding: 0; }
@@ -233,7 +235,7 @@ button.item:hover { border-color: var(--accent); }
   background: var(--accent-soft); border: 1px solid transparent; color: var(--text);
   border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px;
 }
-.timer-time { font-size: 1.35rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.timer-time { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .rest-timer {
   display: flex; align-items: center; gap: 10px;
   background: var(--good-soft); color: var(--good);
@@ -285,7 +287,7 @@ button.item:hover { border-color: var(--accent); }
 .chart-bar { fill: var(--accent); }
 .chart-bar-dim { fill: var(--border); }
 .chart-axis { stroke: var(--border); }
-.chart-label { fill: var(--text-dim); font-size: 10px; font-family: var(--font); }
+.chart-label { fill: var(--text-dim); font-size: 10px; font-family: var(--font); font-variant-numeric: tabular-nums; }
 .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .chart-area { fill: var(--accent); opacity: .12; }
 .chart-dot { fill: var(--accent); }

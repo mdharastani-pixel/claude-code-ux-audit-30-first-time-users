@@ -62,11 +62,23 @@ fitness-app/
 ├── js/store.js       Zustand, localStorage, Auswertungen
 ├── js/charts.js      SVG-Diagramme ohne Bibliothek
 ├── js/app.js         Views, Routing, Interaktion
+├── build-single-file.mjs   Bündelt alles zu einer HTML-Datei
 └── tests/smoke.mjs   Browser-Test über 25 Abläufe
 ```
 
 Klassische `<script>`-Einbindung statt ES-Modulen — so lässt sich `index.html` auch direkt per
 Doppelklick öffnen, ohne dass CORS im Weg steht.
+
+## Als einzelne Datei
+
+```bash
+node fitness-app/build-single-file.mjs          # → fittrack.html (alles inline)
+node fitness-app/build-single-file.mjs --body   # ohne <html>/<head>/<body>, z. B. für Artifacts
+```
+
+Praktisch zum Verschicken oder Hosten: eine Datei, kein Server nötig. Läuft die App in einer
+Umgebung, die eigene Downloads unterbindet, speichert der Export über die Host-Umgebung — sonst
+über den normalen Download-Link.
 
 ## Tests
 

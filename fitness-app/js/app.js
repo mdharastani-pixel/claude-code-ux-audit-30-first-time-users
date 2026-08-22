@@ -80,6 +80,43 @@
     } catch (err) { /* Ton ist optional */ }
   }
 
+  /* ---------- Datei speichern ---------- */
+
+  function downloadViaLink(filename, text) {
+    var url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    global.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // Als veröffentlichtes Artifact darf die Seite nicht selbst herunterladen —
+  // dort übernimmt die Host-Umgebung das Speichern, sonst der klassische Link.
+  function saveFile(filename, text) {
+    var claude = global.claude;
+    if (!claude || typeof claude.use !== 'function') {
+      downloadViaLink(filename, text);
+      return;
+    }
+    claude.use('downloads').then(function (downloads) {
+      if (!downloads) {
+        toast('Speichern hier nicht möglich — nutze „Kopieren".');
+        return;
+      }
+      return downloads.save({ filename: filename, data: text }).then(function () {
+        toast('Datei gespeichert.');
+      }, function (err) {
+        if (err && err.code === 'declined') return;
+        toast('Speichern hier nicht möglich — nutze „Kopieren".');
+      });
+    }, function () {
+      toast('Speichern hier nicht möglich — nutze „Kopieren".');
+    });
+  }
+
   /* ---------- Modal ---------- */
 
   function closeModal() {
@@ -1035,15 +1072,7 @@
             catch (err) { toast('Kopieren nicht möglich — bitte manuell markieren.'); }
           });
           modal.querySelector('[data-download]').addEventListener('click', function () {
-            var blob = new Blob([text], { type: 'application/json' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = 'fittrack-' + Store.todayKey() + '.json';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            global.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            saveFile('fittrack-' + Store.todayKey() + '.json', text);
           });
         });
     },
