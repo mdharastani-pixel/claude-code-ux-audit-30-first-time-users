@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FitTrack — Trainingstagebuch</title>
+<meta name="description" content="Fitness-App zum Protokollieren von Workouts, Sätzen, Fortschritt und Körpergewicht. Läuft komplett offline im Browser.">
+<meta name="theme-color" content="#0f1115">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>">
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🏋️</span>
+      <span class="brand-name">FitTrack</span>
+    </div>
+    <div class="topbar-actions">
+      <span id="session-pill" class="pill pill-live" hidden>
+        <span class="dot"></span><span id="session-pill-time">00:00</span>
+      </span>
+      <button id="theme-toggle" class="icon-btn" type="button" title="Design wechseln" aria-label="Design wechseln">◐</button>
+    </div>
+  </header>
+
+  <nav class="nav" aria-label="Hauptnavigation">
+    <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">◈</span><span>Start</span></a>
+    <a href="#/training"  data-route="training"><span aria-hidden="true">▶</span><span>Training</span></a>
+    <a href="#/plaene"    data-route="plaene" class="nav-last"><span aria-hidden="true">☰</span><span>Pläne</span></a>
+    <a href="#/uebungen"  data-route="uebungen"><span aria-hidden="true">≡</span><span>Übungen</span></a>
+    <a href="#/verlauf"   data-route="verlauf"><span aria-hidden="true">⏱</span><span>Verlauf</span></a>
+    <a href="#/fortschritt" data-route="fortschritt"><span aria-hidden="true">📈</span><span>Fortschritt</span></a>
+    <a href="#/einstellungen" data-route="einstellungen"><span aria-hidden="true">⚙</span><span>Mehr</span></a>
+  </nav>
+
+  <main id="view" class="view" tabindex="-1"></main>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root" class="toast-root" role="status" aria-live="polite"></div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
