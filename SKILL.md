@@ -1,6 +1,6 @@
 ---
 name: test-like-a-new-user
-description: Test a product as 30 first-time users would. Each scenario names a persona, walks a real click path, states what they expected, what actually happened, and cites the file and line that proves it. Produces a filterable HTML report with status, priority and the ten costliest blockers. Use when asked for a UX audit, first-run review, launch-blocker hunt, usability pass, "test it like a new user", "30 testers", or (German) "Erstnutzer-Audit", "Nutzer-Szenarien", "30 Tester".
+description: Use when asked for a UX audit, usability test, first-run or onboarding review, or launch-blocker hunt, or when someone says "test it like a new user", "30 testers", "find what confuses first-time users", or (German) "Erstnutzer-Audit", "Nutzer-Szenarien", "30 Tester".
 ---
 
 # Test Like A New User
@@ -12,6 +12,9 @@ claim about what they see to carry a citation.
 
 The output is a single self-contained HTML file. The ten worst findings sit at the top,
 because that is all most readers will get through.
+
+**Do not use it** when there is neither a runnable product nor source access: with nothing to
+observe and nothing to cite, every finding would be a hypothesis.
 
 ## Quick start
 
@@ -140,6 +143,16 @@ Every scenario, every field, same order. A blank field means the scenario is not
 | **Fix** | One intervention that closes it. One or two sentences |
 | **Evidence** | `file.tsx:50-60`, routes, log lines, screenshots — at least one |
 
+The same finding, written twice:
+
+- Weak: "The signup flow is confusing and should be simplified."
+- Strong: "A trial user submits the signup form with a 7-character password and gets a blank
+  page. Expected: an inline hint. Actual: the 422 response is swallowed
+  (`signup-form.tsx:88-97`, no error state). Fix: render the server message under the field."
+
+The strong version names who, where, what they expected and what happened, and anyone can open
+the cited lines and check it.
+
 ### Phase 5 — Classify
 
 **Status**, exactly one per scenario:
@@ -195,16 +208,26 @@ Scenarios are matched by `id`, and each is marked **fixed**, **new**, **still op
 **regressed**. A second audit that starts from zero wastes the first one: what everybody
 wants to know is what moved.
 
+## Excuses and what is true
+
+| Excuse | Reality |
+|---|---|
+| "I know this product, the path obviously works" | That is the blind spot the 30 strangers exist to remove. Walk it. |
+| "I read the component, I can tell what renders" | Reading is not observing. Run it, or label it `UX-HYPOTHESIS`. |
+| "Thirty is too many, ten will show the pattern" | Ten scenarios test the happy path three times. Fill the grid. |
+| "The app will not start, so I cannot audit" | That is finding number one. Continue at code level. |
+| "This fix needs a redesign, I'll say 'rework the flow'" | One intervention you could build tomorrow, or it gets cut. |
+
 ## Self-check before you publish the report
 
-Run these against your own output. Each one has caught a bad audit.
+Run these against your own output. Each one has caught a bad audit. Every box must be ticked.
 
-- More than a third `UX-HYPOTHESIS` → you reviewed source, not product. Go back to phase 3.
-- Two scenarios with the same click path → the grid was too narrow. Replace one.
-- A finding with no citation → cut it, or demote it to hypothesis.
-- Everything is `P0` → then nothing is. Cap `P0` at a third.
-- A fix you could not implement yourself tomorrow → too vague, rewrite it.
-- No mobile scenario failed → suspicious. Mobile is where layout breaks; look again.
+- [ ] At most a third of the findings are `UX-HYPOTHESIS`. More means you reviewed source, not product: go back to phase 3.
+- [ ] No two scenarios share a click path. If two do, the grid was too narrow: replace one.
+- [ ] Every finding has a citation. One without gets cut or demoted to hypothesis.
+- [ ] At most a third are `P0`. If everything is `P0`, nothing is.
+- [ ] Every fix is one you could implement yourself tomorrow. Otherwise it is too vague: rewrite it.
+- [ ] At least one mobile scenario was looked at twice. Mobile is where layout breaks; none failing is suspicious.
 
 ## Files
 

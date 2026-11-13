@@ -1,5 +1,7 @@
 # Claude Code UX Audit: 30 First-Time Users (test-like-a-new-user)
 
+**Thirty first-time users, zero guessing: every finding points at a line of code.**
+
 An agent skill that tests your product as 30 first-time users — and refuses to let the agent
 guess.
 
