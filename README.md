@@ -1,4 +1,4 @@
-# test-like-a-new-user
+# Claude Code UX Audit: 30 First-Time Users (test-like-a-new-user)
 
 An agent skill that tests your product as 30 first-time users — and refuses to let the agent
 guess.
@@ -14,7 +14,7 @@ files. The tooling is plain Python 3 — no dependencies, no build step.
 ## Install
 
 ```bash
-git clone https://github.com/mdharastani-pixel/test-like-a-new-user.git \
+git clone https://github.com/mdharastani-pixel/claude-code-ux-audit-30-first-time-users.git \
   ~/.claude/skills/test-like-a-new-user
 ```
 
